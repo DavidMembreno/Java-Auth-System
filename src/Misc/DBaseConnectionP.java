@@ -39,9 +39,9 @@ public class DBaseConnectionP {
     private final String accounts = "accounts";
 
     // Database credentials are provided via environment variables (DB_USER, DB_PASS)
-    private String userdatabaseURL = "jdbc:mysql://localhost:3306/csc335?useSSL=false";
+    private String userdatabaseURL = "jdbc:mysql://localhost:3306/csc335?useSSL=false&allowPublicKeyRetrieval=true";
     private String first = "jdbc:mysql://";
-    private String second = ":3306/csc335?useSSL=false";
+    private String second = ":3306/csc335?useSSL=false&allowPublicKeyRetrieval=true";
 
     private String user = System.getenv().getOrDefault("DB_USER", "root");
     private String password = System.getenv().getOrDefault("DB_PASS", "");
@@ -153,7 +153,7 @@ public class DBaseConnectionP {
         }
     }
 
-    public String[] getUsernames() {
+    public synchronized String[] getUsernames() {
         List<String> usernamesA = new ArrayList<>();
         try {
             resultset = userStatement.executeQuery("SELECT username FROM " + accounts + ";");
@@ -166,12 +166,12 @@ public class DBaseConnectionP {
         return usernamesA.toArray(new String[0]);
     }
 
-    public int getconnections() {
-        String sql = "SELECT COUNT(*) AS cnt FROM connections;";
-        try {
-            resultset = userStatement.executeQuery(sql);
-            if (resultset.next()) {
-                return resultset.getInt("cnt");
+    public synchronized int getconnections() {
+        String sql = "SELECT COUNT(*) AS cnt FROM connections";
+        try (Statement st = userConnection.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("cnt");
             }
         } catch (SQLException ex) {
             System.out.println("SQLException: " + ex.getMessage());
@@ -244,7 +244,7 @@ public class DBaseConnectionP {
         return loginAttemptsL.stream().mapToInt(i -> i).toArray();
     }
 
-    public String[] getLockedOutUsers() {
+    public synchronized String[] getLockedOutUsers() {
         updatelists();
         List<String> lockedUsers = new ArrayList<>();
         if (usernames == null || lockedOutStatus == null) return new String[0];
@@ -256,7 +256,7 @@ public class DBaseConnectionP {
         return lockedUsers.toArray(new String[0]);
     }
 
-    public void updatelists() {
+    public synchronized void updatelists() {
         usernames = getUsernames();
         passwords = getPasswords();
         emails = getEmails();
@@ -423,7 +423,7 @@ public class DBaseConnectionP {
         }
     }
 
-    public String[] getActiveUsers() {
+    public synchronized String[] getActiveUsers() {
         List<String> activeUsers = new ArrayList<>();
         if (usernames == null || activeStatus == null) return new String[0];
 

@@ -203,6 +203,8 @@ public class ServerApplication extends JFrame implements Runnable, Serializable 
             this.setVisible(true);
     
         } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Dashboard failed to load: " + e.getMessage());
         }
     }
 
