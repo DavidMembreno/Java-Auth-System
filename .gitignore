@@ -18,3 +18,9 @@ Thumbs.db
 
 # Secrets
 .env
+
+.idea/
+out/
+*.iml
+
+!docs/media/**
